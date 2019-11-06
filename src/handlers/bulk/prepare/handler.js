@@ -137,10 +137,19 @@ const bulkPrepare = async (error, messages) => {
         const IndividualTransferModel = BulkTransferModels.getIndividualTransferModel()
         const indvidualTransfersStream = IndividualTransferModel.find({ messageId }).cursor()
         // enable async/await operations for the stream
+        Logger.info(Util.breadcrumb(location, '1'))
         const streamReader = AwaitifyStream.createReader(indvidualTransfersStream)
+        Logger.info(Util.breadcrumb(location, '2----------------'))
         let doc
 
-        while ((doc = await streamReader.readAsync()) !== null) {
+        Logger.info('---------------streamReader-----------------')
+        Logger.info(JSON.stringify(streamReader, Util.getCircularReplacer()))
+        doc = await streamReader.readAsync()
+        Logger.info('---------------doc-----------------')
+        Logger.info(JSON.stringify(doc, Util.getCircularReplacer()))
+
+        while (doc !== null) {
+          Logger.info(Util.breadcrumb(location, '3'))
           const individualTransfer = doc.payload
           individualTransfer.payerFsp = payload.payerFsp
           individualTransfer.payeeFsp = payload.payeeFsp
@@ -152,6 +161,7 @@ const bulkPrepare = async (error, messages) => {
             bulkTransferId: payload.bulkTransferId,
             bulkProcessingStateId: Enum.Transfers.BulkProcessingState.RECEIVED
           }
+          Logger.info(Util.breadcrumb(location, '4'))
           await BulkTransferService.bulkTransferAssociationCreate(bulkTransferAssociationRecord)
           const dataUri = encodePayload(JSON.stringify(individualTransfer), headers[Enum.Http.Headers.GENERAL.CONTENT_TYPE.value])
           const metadata = Util.StreamingProtocol.createMetadataWithCorrelatedEventState(message.value.metadata.event.id, Enum.Events.Event.Type.TRANSFER, Enum.Events.Event.Action.BULK_PREPARE, Enum.Events.EventStatus.SUCCESS.status, Enum.Events.EventStatus.SUCCESS.code, Enum.Events.EventStatus.SUCCESS.description)
@@ -160,9 +170,14 @@ const bulkPrepare = async (error, messages) => {
           }
           params = { message: msg, kafkaTopic, consumer: Consumer, producer: Producer }
           const eventDetail = { functionality: Enum.Events.Event.Type.PREPARE, action: Enum.Events.Event.Action.BULK_PREPARE }
+          Logger.info(Util.breadcrumb(location, '5'))
           await Kafka.proceed(Config.KAFKA_CONFIG, params, { consumerCommit, eventDetail })
           histTimerEnd({ success: true, fspId: Config.INSTRUMENTATION_METRICS_LABELS.fspId })
+          Logger.info(Util.breadcrumb(location, '6'))
+          doc = await streamReader.readAsync()
         }
+        Logger.info(Util.breadcrumb(location, '7================='))
+        return true
       } catch (err) { // TODO: handle individual transfers streaming error
         Logger.info(Util.breadcrumb(location, `callbackErrorInternal2--${actionLetter}6`))
         Logger.info(Util.breadcrumb(location, 'notImplemented'))

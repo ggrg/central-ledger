@@ -6,11 +6,7 @@ networks:
 
 services:
   central-ledger:
-    build:
-      context: .
-      cache_from:
-        - mojaloop/central-ledger
-        - central-ledger
+    image: mojaloop/central-ledger:test
     container_name: cl_central-ledger
     command:
       - "sh"

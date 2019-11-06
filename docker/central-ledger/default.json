@@ -3,7 +3,7 @@
   "HOSTNAME": "http://central-ledger",
   "DATABASE": {
     "DIALECT": "mysql",
-    "HOST": "localhost",
+    "HOST": "mysql",
     "PORT": 3306,
     "USER": "central_ledger",
     "PASSWORD": "password",
@@ -35,7 +35,7 @@
   },
   "MONGODB": {
     "DISABLED": false,
-    "URI": "mongodb://objstore:27017/mlos"
+    "URI": "mongodb://cl_objstore:27017/mlos"
   },
   "ERROR_HANDLING": {
     "includeCauseExtension": true,
